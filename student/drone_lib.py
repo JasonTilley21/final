@@ -261,9 +261,14 @@ def send_body_frame_velocities(device, forward, right, velocity_z, duration=2):
         0, 0)  # yaw, yaw_rate (not supported yet, ignored in GCS_Mavlink)
 
     # send command to vehicle on 1 Hz cycle
-    for x in range(0, duration):
-        device.send_mavlink(msg)
-        time.sleep(1)
+    end = time.time() + duration
+    while time.time() < end:
+        device.send_mavlink(msg);
+        time.sleep(duration / 5)
+
+    # for x in range(0, duration):
+    #     device.send_mavlink(msg)
+    #     time.sleep(1)
 
 
 def connect_device(s_connection, baud=115200, log=None):

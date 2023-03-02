@@ -98,7 +98,7 @@ def confirm_obj_in_bbox(frame, bbox, frame_write=None, show_img=False, in_debug=
         # the tight object bounding box
         cx = int(x + w / 2)
         cy = int(y + h / 2)
-        cr = int(max(w, h) / 2)
+        cr = int(max(w, h) *  1.25)
 
         # Use random noise background
         blank_image = rnd_background.copy()
@@ -108,6 +108,8 @@ def confirm_obj_in_bbox(frame, bbox, frame_write=None, show_img=False, in_debug=
 
         # Now, insert the cropped object into the frame with random noise
         blank_image[y:y + cropped.shape[0], x:x + cropped.shape[1]] = cropped
+        cv2.imshow("cropped", blank_image)
+        cv2.waitKey(1)
 
         if frame_write is None:
             frame_write = blank_image.copy()
@@ -175,12 +177,11 @@ def check_for_initial_target(img=None, img_write=None, show_img=False, in_debug=
 
         # Calculate where the center of the object is in the frame
         x_center = x + int(w / 2)
-        y_center = y + (int(h / 2))
+        y_center = y + (int(h))
 
         return (x_center, y_center), max_confidence, (x, y), max([h / 2, w / 2]), img_write, b_boxes_kept[max_index]
     else:
         return (0, 0), None, (0, 0), None, img_write, (0, 0, 0, 0)
-
 
 def track_with_confirm(img, img_write=None, show_img=False, debug_mode=False):
     global total_track_misses, confirmed_object_tracking
@@ -194,7 +195,6 @@ def track_with_confirm(img, img_write=None, show_img=False, debug_mode=False):
         track_object(img, show_img=show_img)
 
     if confidence is not None:
-
         if confirm_obj_in_bbox(img, frame_write=None,
                                bbox=bbox,
                                show_img=show_img,
@@ -215,6 +215,8 @@ def track_with_confirm(img, img_write=None, show_img=False, debug_mode=False):
         cv2.putText(frm_display, "Tracking...", (100, 80), cv2.FONT_HERSHEY_SIMPLEX, 0.75,
                     (0, 0, 255), 2)
 
+        cv2.circle(frm_display, center, 7, (255, 0, 0), thickness=-1)
+
     if show_img:
         cv2.imshow("Real-time Detect", img_write)
 
@@ -234,7 +236,7 @@ def track_object(img, img_write=None, show_img=False, debug=False):
         bbox = tuple(int(val) for val in box)
         x, y, w, h = bbox
         x_center = bbox[0] + int(bbox[2] / 2)
-        y_center = bbox[1] + (int(bbox[3] / 2))
+        y_center = bbox[1] + (int(bbox[3]))
         cv2.rectangle(img_write, (x, y), (x + w, y + h), (255, 0, 255), 2)
 
         if show_img:
