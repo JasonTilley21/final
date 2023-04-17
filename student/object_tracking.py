@@ -56,9 +56,9 @@ def load_visdrone_network():
 
     global visdrone_net, output_layers, visdrone_classes
     # TODO: be sure to set these paths correctly, according to your system.
-    in_weights = '/home/usafa/PycharmProjects/USAFA/Drone001/yolo_visdron/yolov4-tiny-custom_last.weights'
-    in_config = '/home/usafa/PycharmProjects/USAFA/Drone001/yolo_visdron/yolov4-tiny-custom.cfg'
-    name_file = '/home/usafa/PycharmProjects/USAFA/Drone001/yolo_visdron/custom.names'
+    in_weights = './yolo_visdrone/yolov4-tiny-custom_last.weights'
+    in_config = './yolo_visdrone/yolov4-tiny-custom.cfg'
+    name_file = './yolo_visdrone/custom.names'
 
 
     """
