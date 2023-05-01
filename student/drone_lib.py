@@ -395,8 +395,8 @@ def goto_point(device, lat, lon, speed, alt, log=None):
             log_activity(f"Current lat: {device.location.global_relative_frame.lat}", log)
             log_activity(f"Current lon: {device.location.global_relative_frame.lon, log}")
 
-            alt_percent = device.location.global_relative_frame.alt / alt
-            lat_percent = device.location.global_relative_frame.lat / lat
+            alt_percent = device.location.global_relative_frame.alt / alt if alt > 0 else 0
+            lat_percent =device.location.global_relative_frame.lat / lat  if alt > 0 else 0
             lon_percent = device.location.global_relative_frame.lon / lon
 
             log_activity(f"Relative position to destination: {alt_percent},{lat_percent}, {lon_percent}", log)

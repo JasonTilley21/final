@@ -33,6 +33,7 @@ DEFAULT_MAX_CONFIRM_ATTEMPTS = 8
 IMG_FONT = cv2.FONT_HERSHEY_SIMPLEX
 IMG_SNAPSHOT_PATH = '/media/usafa/data/pex03_mission/cam_pex'
 MISSION_VIRTUAL_MODE = True
+cspeed = 0.75
 
 
 class DroneMission:
@@ -221,9 +222,10 @@ class DroneMission:
         dx = float(target_point[0]) - obj_track.FRAME_HORIZONTAL_CENTER
         dy = obj_track.FRAME_VERTICAL_CENTER - float(target_point[1])
 
-        pixel_forgiveness = 12 # TODO: you decide what "good enough" is to consider centered on x or y axis...
+        pixel_forgiveness = 15  # TODO: you decide what "good enough" is to consider centered on x or y axis...
 
         if self.mission_mode == MISSION_MODE_TARGET:
+
 
             # Adjust position relative to target
             if target_point is not None \
@@ -253,6 +255,7 @@ class DroneMission:
                     # time to deliver...
                     # Switch to "deliver" mode now.
                     self.mission_mode = MISSION_MODE_DELIVER
+                    print("DELIVERY TIME")
                     drone_lib.log_activity("Time to deliver package!")
 
                     if frame_write is not None:
@@ -261,7 +264,7 @@ class DroneMission:
                                     (0, 0, 255), 2, cv2.LINE_AA)
                 else:
                     # REDO: see below for setting your threshold... you decide what it should be
-                    pixel_distance_threshold = -12
+                    pixel_distance_threshold = -pixel_forgiveness
 
                     # log movements...
                     logging.info("Targeting... determined changes in velocities: X: "
@@ -276,12 +279,12 @@ class DroneMission:
                         # REDO: calculate a velocity for x-axis adjustment
                         xv = 7
                     else:
-                        xv = 0
+                        xv = -7
                     if abs(dy) > pixel_distance_threshold:
-                        yv = 3
+                        yv = 7
                         #pass  # REDO: remove "pass" when you've completed this condition.
                     else:
-                        yv = 0
+                        yv = -7
                         #pass  # REDO: remove "pass" when you've completed this condition.
 
                     # Execute movements towards centering on target
@@ -293,7 +296,7 @@ class DroneMission:
                                             (0, 255, 0), 2, cv2.LINE_AA)
                                 # REDO: you can perform "drone_lib.small_move_forward here,
                                 #       or you can do a drone_lib.move_local as well.
-                                drone_lib.small_move_forward(drone)
+                                drone_lib.small_move_forward(drone,cspeed)
                         else:
                             if frame_write is not None:
                                 cv2.putText(frame_write, "Move back....", (10, 200), IMG_FONT, 1,
@@ -301,7 +304,7 @@ class DroneMission:
 
                             # REDO: you can perform "drone_lib.small_move_back here,
                             #       or you can do a drone_lib.move_local as well.
-                            drone_lib.small_move_back(drone)
+                            drone_lib.small_move_back(drone,cspeed)
 
                     if self.direction_x != "C":  # If we are not centered on x-axis...
 
@@ -313,7 +316,7 @@ class DroneMission:
 
                             # TODO: you can perform "drone_lib.small_move_right here,
                             #       or you can do a drone_lib.move_local as well.
-                            drone_lib.small_move_right(drone)
+                            drone_lib.small_move_right(drone ,cspeed)
                         else:
                             if frame_write is not None:
                                 cv2.putText(frame_write, "Move left....", (10, 300), IMG_FONT, 1,
@@ -321,7 +324,7 @@ class DroneMission:
 
                             # TODO: you can perform "drone_lib.small_move_left here,
                             #       or you can do a drone_lib.move_local as well.
-                            drone_lib.small_move_left(drone)
+                            drone_lib.small_move_left(drone,cspeed)
 
             else:
                 if frame_write is not None:
@@ -358,7 +361,7 @@ class DroneMission:
             self.log_info(f"Ground distance: {ground_dist}.")
 
             # TODO: now, calculate new lat/long within 10 feet of objective
-            new_lat,  new_lon = pixels_to_lat_long(dist_to_object, alt, lat, lon)
+            new_lat,  new_lon = pixels_to_lat_long(dist_to_object, alt, lat, lon, heading)
             # Hint: use new_lat, new_lon = pex03_utils.calc_new_location function to get it...
             #       Don't forget that you want to deliver within ten fee of the person (not much closer),
             #       and you don't want to deliver too far away from that distance...
@@ -368,7 +371,15 @@ class DroneMission:
             # TODO: Now, goto new location...
             # HINT: drone_lib.goto_point(self.drone,.....)
             # TODO fix speed and altitude. Alt should be dependent on the length of the deployment cable, speed is currently just a random number
-            drone_lib.goto_point(drone, new_lat, new_lon, 12, 0)
+            if MISSION_VIRTUAL_MODE:
+                drone_lib.goto_point(drone, new_lat, new_lon,12, 2)
+                print('Release Grip Here')
+            else:
+                drone_lib.goto_point(drone, new_lat, new_lon, 12, 2)
+                pex03_utils.release_grip(drone)
+
+
+
 
             if frame_write is not None:
                 cv2.putText(frame_write, "Delivering...", (10, 400), IMG_FONT, 1, (255, 0, 0), 2, cv2.LINE_AA)
@@ -377,7 +388,7 @@ class DroneMission:
             if self.virtual_mode:
                 # if just testing in sim, just land.
                 self.log_info("Time to land...")
-                self.mission_mode = MISSION_MODE_RTL
+                # self.mission_mode = MISSON_MODE_RTL
 
                 # if in "virtual" mode, we will just land in spot where we want to drop package.
                 drone_lib.device_land(self.drone)
@@ -396,7 +407,7 @@ class DroneMission:
 
                     # TODO: you can perform "drone_lib.small_move_down here,
                     #       or you can do a drone_lib.move_local as well.
-                    drone_lib.small_move_down(drone)
+                    drone_lib.small_move_down(drone,cspeed)
 
 
                 # TODO: after reach an alt below your threshold, how quickly should you continue to lower the package?
@@ -409,7 +420,7 @@ class DroneMission:
 
                     # TODO: you can perform "drone_lib.small_move_down here,
                     #       or you can do a drone_lib.move_local as well.
-                    drone_lib.small_move_down(drone)
+                    drone_lib.small_move_down(drone,cspeed)
 
             # TODO: Now, release the package.
             # TODO: see pex03_utils.release_grip function to
@@ -537,7 +548,7 @@ class DroneMission:
 
                 # TODO: set your confidence level here...
                 # HINT: needs to be smaller than 99%!
-                conf_level = .2
+                conf_level = .3
                 if confidence is not None \
                         and confidence > conf_level:
                     # We found something.  Now, send to tracker.
@@ -601,12 +612,12 @@ class DroneMission:
 
             self.refresh_counter += 1
 
-def pixels_to_lat_long(depth, height,  cur_lat, cur_long):
+def pixels_to_lat_long(depth, height,  cur_lat, cur_long, heading):
+    if MISSION_VIRTUAL_MODE:  depth = 24
     degree_coeff = 180 / math.pi
-    distance = pex03_utils.get_ground_distance(height, depth)
-    new_lat = cur_lat + (height / 6_378_000) * degree_coeff
-    new_long = cur_long + (distance / 6_378_000) * degree_coeff / math.cos(cur_lat * math.pi / 180)
-    return new_lat, new_long
+    distance = pex03_utils.get_ground_distance(height, depth) +2
+
+    return pex03_utils.calc_new_location(cur_lat, cur_long, heading, distance)
 
 
 if __name__ == '__main__':

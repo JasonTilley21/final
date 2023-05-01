@@ -22,13 +22,13 @@ FRAME_WIDTH = int(640)
 rnd_background = np.random.randint(0, 256, size=(FRAME_HEIGHT, FRAME_WIDTH, 3)).astype('uint8')
 
 total_track_misses = 0
-TRACKER_MISSES_MAX = 6
+TRACKER_MISSES_MAX = 20
 confirmed_object_tracking = False
 
 tracker = None
 DEFAULT_TRACKER_TYPE = 'CSRT'
 cv_version = cv2.__version__
-#os.chdir("..")
+# os.chdir("..")
 
 
 def create_tracker(tracker_type='CSRT'):
@@ -58,9 +58,9 @@ def load_visdrone_network():
 
     global visdrone_net, output_layers, visdrone_classes
     # TODO: be sure to set these paths correctly, according to your system.
-    in_weights = '../yolo_visdrone/yolov4-tiny-custom_last.weights'
-    in_config = '../yolo_visdrone/yolov4-tiny-custom.cfg'
-    name_file = '../yolo_visdrone/custom.names'
+    in_weights = './yolo_visdrone/yolov4-tiny-custom_last.weights'
+    in_config = './yolo_visdrone/yolov4-tiny-custom.cfg'
+    name_file = './yolo_visdrone/custom.names'
 
 
 
